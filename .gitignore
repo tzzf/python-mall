@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Virtual environments
+backend/venv/
+.venv/
+
+# Environment variables (secrets)
+.env
+.env.local
+.env.*.local
+
+# FastAPI / Alembic
+alembic/versions/*.py
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node.js
+node_modules/
+.pnp
+.pnp.js
+
+# Vue / Vite build outputs
+admin/dist/
+mall/dist/
+*.local
+
+# Logs
+*.log
+logs/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Docker
+.docker/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Local development
+*.db
+*.sqlite
+*.sqlite3

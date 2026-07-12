@@ -1,0 +1,91 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: fastapi_postgres
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppassword
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mall_network
+
+  redis:
+    image: redis:7
+    container_name: fastapi_redis
+    command: redis-server --requirepass redispassword
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redispassword", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mall_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/alembic.ini:/app/alembic.ini
+      - ./backend/app:/app/app:ro
+      - ./backend/alembic:/app/alembic
+    container_name: fastapi_backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://appuser:apppassword@postgres:5432/appdb
+      REDIS_URL: redis://default:redispassword@redis:6379/0
+      SECRET_KEY: dev-secret-key
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - mall_network
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: fastapi_admin
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - mall_network
+
+  mall:
+    build:
+      context: ./mall
+      dockerfile: Dockerfile
+    container_name: fastapi_mall
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
+    networks:
+      - mall_network
+
+networks:
+  mall_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
