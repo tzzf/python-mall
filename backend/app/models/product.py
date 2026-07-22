@@ -19,4 +19,5 @@ class Product(Base):
     stock = Column(Integer, default=0)
     is_active = Column(Boolean, default=True)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    image = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

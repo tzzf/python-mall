@@ -34,6 +34,7 @@
           <template v-else-if="column.key === 'action'">
             <a-space>
               <a-button type="link" size="small" @click="handleEdit(record)">编辑</a-button>
+              <a-button type="link" size="small" @click="handleRegenerateImage(record.id)">重新生成图片</a-button>
               <a-popconfirm
                 title="确定删除该商品吗?"
                 ok-text="确定"
@@ -67,7 +68,7 @@
 import { ref } from 'vue'
 import { message } from 'ant-design-vue'
 import type { ProductResponse } from '../../types'
-import { getProducts, deleteProduct } from '../../api'
+import { getProducts, deleteProduct, regenerateProductImage } from '../../api'
 import { useAsyncState } from '../../composables/useAsyncState'
 import { useOptimistic } from '../../composables/useOptimistic'
 import ErrorBoundary from '../../components/ui/ErrorBoundary.vue'
@@ -122,6 +123,15 @@ const handleCreate = () => {
 const handleEdit = (product: ProductResponse) => {
   currentProduct.value = product
   formVisible.value = true
+}
+
+const handleRegenerateImage = async (id: number) => {
+  try {
+    await regenerateProductImage(id)
+    message.success('图片生成任务已受理，请稍后刷新查看')
+  } catch (error: any) {
+    message.error(error.message || '操作失败')
+  }
 }
 
 const handleTableChange = (e: any) => {

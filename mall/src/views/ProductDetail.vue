@@ -7,7 +7,7 @@
           <a-row :gutter="40" v-if="product">
             <a-col :span="10">
               <div class="product-image">
-                <img src="https://via.placeholder.com/400x300?text=Product" :alt="product.name" />
+                <img :src="getImageUrl(product.image)" :alt="product.name" @error="handleImageError" />
               </div>
             </a-col>
             <a-col :span="14">
@@ -81,13 +81,24 @@ const handleAddToCart = async () => {
   }
   adding.value = true
   try {
-    await cartStore.addItem(product.value!.id, quantity.value)
+    await cartStore.addItem(product.value!.id, quantity.value, product.value!.image)
     message.success('添加成功')
   } catch (error: any) {
     message.error(error.message || '添加失败')
   } finally {
     adding.value = false
   }
+}
+
+const getImageUrl = (image: string | undefined) => {
+  if (!image) return 'https://via.placeholder.com/400x300?text=Product'
+  if (image.startsWith('http')) return image
+  return `/static/${image}`
+}
+
+const handleImageError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  img.src = 'https://via.placeholder.com/400x300?text=Product'
 }
 
 onMounted(() => {

@@ -3,10 +3,11 @@
     <template #cover>
       <div class="product-image-wrapper">
         <img
-          :src="product.image || 'https://via.placeholder.com/300x200?text=Product'"
+          :src="getImageUrl(product.image)"
           :alt="product.name"
           class="product-image"
           loading="lazy"
+          @error="handleImageError"
         />
         <div class="product-badge" v-if="product.stock < 10">仅剩 {{ product.stock }} 件</div>
       </div>
@@ -70,11 +71,22 @@ const handleAddToCart = async () => {
     return
   }
   try {
-    await cartStore.addItem(props.product.id, 1)
+    await cartStore.addItem(props.product.id, 1, props.product.image)
     message.success('已加入购物车')
   } catch (error: any) {
     message.error(error.message || '添加失败')
   }
+}
+
+const getImageUrl = (image: string | undefined) => {
+  if (!image) return 'https://via.placeholder.com/300x200?text=Product'
+  if (image.startsWith('http')) return image
+  return `/static/${image}`
+}
+
+const handleImageError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  img.src = 'https://via.placeholder.com/300x200?text=Product'
 }
 </script>
 

@@ -18,6 +18,7 @@ class CartItemResponse(BaseModel):
     quantity: int
     product_name: Optional[str] = None
     price: Optional[str] = None
+    image: Optional[str] = None
 
 
 class CartResponse(BaseModel):

@@ -28,6 +28,7 @@ export interface CartItemResponse {
   quantity: number
   product_name: string | null
   price: string | null
+  image: string | null
 }
 
 export interface OrderResponse {

@@ -40,6 +40,7 @@ class ProductBase(BaseModel):
     stock: int = 0
     is_active: bool = True
     category_id: Optional[int] = None
+    image: Optional[str] = None
 
 
 class ProductCreate(ProductBase):
@@ -53,6 +54,7 @@ class ProductUpdate(BaseModel):
     stock: Optional[int] = None
     is_active: Optional[bool] = None
     category_id: Optional[int] = None
+    image: Optional[str] = None
 
 
 class ProductResponse(ProductBase):

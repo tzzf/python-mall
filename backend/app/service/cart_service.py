@@ -46,6 +46,7 @@ class CartService:
                 quantity=quantity,
                 product_name=product.name if product else "已删除",
                 price=str(product.price) if product else "0",
+                image=product.image if product else None,
             ))
             total_count += quantity
         return CartResponse(user_id=user_id, items=items, total_count=total_count)

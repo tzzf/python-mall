@@ -13,7 +13,11 @@
           >
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'image'">
-                <img class="product-thumb" src="https://via.placeholder.com/60x60?text=P" />
+                <img
+                  class="product-thumb"
+                  :src="getImageUrl(record.image)"
+                  @error="handleImageError"
+                />
               </template>
               <template v-else-if="column.key === 'name'">
                 {{ record.product_name || `商品 #${record.product_id}` }}
@@ -104,6 +108,17 @@ onMounted(() => {
     loading.value = false
   })
 })
+
+const getImageUrl = (image: string | null | undefined) => {
+  if (!image) return 'https://via.placeholder.com/60x60?text=P'
+  if (image.startsWith('http')) return image
+  return `/static/${image}`
+}
+
+const handleImageError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  img.src = 'https://via.placeholder.com/60x60?text=P'
+}
 </script>
 
 <style scoped>

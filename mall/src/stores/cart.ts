@@ -29,12 +29,13 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  const addItem = async (productId: number, quantity: number = 1) => {
+  const addItem = async (productId: number, quantity: number = 1, image: string = '') => {
     const existingItem = items.value.find(item => item.product_id === productId)
     if (existingItem) {
       existingItem.quantity += quantity
     } else {
       items.value.push({
+        image,
         product_id: productId,
         quantity,
         product_name: null,

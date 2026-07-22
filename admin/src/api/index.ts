@@ -14,8 +14,8 @@ import router from '../router'
 
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/admin',
-  timeout: 10000
+  baseURL: '/api/admin',
+  timeout: 10000 * 200
 })
 
 api.interceptors.request.use((config) => {
@@ -81,6 +81,9 @@ export const updateProduct = (id: number, data: Partial<ProductResponse>) =>
   api.put<ProductResponse>(`/products/${id}`, data)
 
 export const deleteProduct = (id: number) => api.delete(`/products/${id}`)
+
+export const regenerateProductImage = (id: number) =>
+  api.post(`/products/${id}/generate-image`)
 
 // Category APIs
 export const getCategories = () => api.get<CategoryResponse[]>('/products/categories')

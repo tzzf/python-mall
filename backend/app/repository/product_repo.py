@@ -49,6 +49,16 @@ class ProductRepository:
         await self.db.delete(product)
         await self.db.commit()
 
+    async def update_image(self, product_id: int, image_url: str) -> bool:
+        """原子更新产品的 image 字段。"""
+        result = await self.db.execute(
+            update(Product)
+            .where(Product.id == product_id)
+            .values(image=image_url)
+        )
+        await self.db.commit()
+        return result.rowcount > 0
+
     async def increase_stock(self, product_id: int, quantity: int) -> bool:
         """增加库存（还原）"""
         result = await self.db.execute(

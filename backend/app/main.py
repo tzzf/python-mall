@@ -7,7 +7,7 @@ from app.core.response import add_code_wrapper
 from app.api.admin.router import admin_router
 from app.tasks import create_scheduler
 from app.core.exceptions import api_exception_handler, api_other_exception_handler
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="Mall API", version="0.1.0")
 
@@ -28,6 +28,9 @@ app.add_exception_handler(Exception, api_other_exception_handler)
 
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/admin")
+
+# 图片存 static/images/，访问 URL: http://host:8000/static/images/products/5/abc.jpg
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/health")
 async def health():

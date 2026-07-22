@@ -12,6 +12,8 @@ from app.schemas.product import (
     CategoryResponse,
     PaginatedSpuResponse,
 )
+from app.modules.product_image import ProductImageModule
+import asyncio
 from typing import List, Optional
 
 router = APIRouter(prefix="/products", tags=["管理端-商品"])
@@ -82,7 +84,11 @@ async def create_product(
     _current_admin=Depends(get_current_admin),
 ):
     svc = get_product_service(db)
-    return await svc.create_product(product_in)
+    data = await svc.create_product(product_in)
+    result = ProductResponse.model_validate(data)
+    module = ProductImageModule()
+    asyncio.create_task(module.trigger_or_skip(result.id))
+    return data
 
 
 @router.get("/", response_model=PaginatedSpuResponse)
@@ -123,7 +129,7 @@ async def update_product(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.delete("/{product_id}", status_code=204)
+@router.delete("/{product_id}", status_code=200)
 async def delete_product(
     product_id: int,
     db: AsyncSession = Depends(get_db),
@@ -131,6 +137,24 @@ async def delete_product(
 ):
     svc = get_product_service(db)
     try:
-        await svc.delete_product(product_id)
+        return await svc.delete_product(product_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/{product_id}/generate-image", status_code=200)
+async def generate_product_image(
+    product_id: int,
+    _current_admin=Depends(get_current_admin),
+):
+    """
+    触发产品图片异步生成。
+
+    - 幂等：产品已有图片则直接返回现有图片
+    - 异步：生成在后台进行，接口立即返回 202
+    """
+    module = ProductImageModule()
+    await module.trigger_or_skip(product_id)
+    # trigger_or_skip 内部处理了不存在/已有图片的情况
+    # 返回 202 让前端知道已受理，稍后刷新即可见最新图片
+    return {"message": "图片生成任务已受理，请稍后刷新查看"}
