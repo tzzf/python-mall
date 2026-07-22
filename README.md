@@ -80,8 +80,14 @@ API 层（路由）→ Service 层（业务）→ Repository 层（数据）→ 
 ### 开发环境
 
 ```bash
-cd project
+nvm use 20
 docker-compose up --build
+
+cd admin
+npm run dev
+
+cd mall
+npm run dev
 ```
 
 ### 生产环境
