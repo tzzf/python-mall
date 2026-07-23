@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import get_db
 from app.core.redis import close_redis
@@ -6,7 +7,7 @@ from app.api.v1.router import api_router
 from app.core.response import add_code_wrapper 
 from app.api.admin.router import admin_router
 from app.tasks import create_scheduler
-from app.core.exceptions import api_exception_handler, api_other_exception_handler
+from app.core.exceptions import api_exception_handler, api_other_exception_handler, BizException
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="Mall API", version="0.1.0")
@@ -25,6 +26,10 @@ app.middleware("http")(add_code_wrapper)
 app.add_exception_handler(HTTPException, api_exception_handler)
 
 app.add_exception_handler(Exception, api_other_exception_handler)
+app.add_exception_handler(BizException, lambda req, exc: JSONResponse(
+    status_code=400,
+    content={"code": 400, "message": exc.message, "type": "biz_error"},
+))
 
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/admin")

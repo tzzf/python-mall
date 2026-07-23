@@ -22,7 +22,7 @@
         :columns="columns"
         :data-source="products"
         row-key="id"
-        :pagination="{ pageSize: 10, total }"
+        :pagination="{ pageSize: pageSize, total, current }"
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
@@ -104,6 +104,7 @@ const loadProducts = async () => {
       })
       // Store total from API response
       total.value = (data as any).total || 0
+      pageSize.value = (data as any).limit || 0
       return data?.data as unknown as ProductResponse[]
     })
 

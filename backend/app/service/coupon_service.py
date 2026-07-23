@@ -39,22 +39,8 @@ class CouponService:
         )
         return list(result.scalars().all())
 
-    async def get_admin_coupon_list(self, skip: int = 0, limit: int = 100) -> dict:
-        result = await self.db.execute(
-            select(Coupon)
-            .order_by(Coupon.created_at.desc())
-            .offset(skip)
-            .limit(limit)
-        )
-        coupons = list(result.scalars().all())
-        query = select(func.count()).select_from(Coupon)
-        total = await self.db.execute(query)
-        return {
-            "data": [ CouponInfo.model_validate(item) for item in coupons ],
-            "total": total.scalar_one(),
-            "skip": skip,
-            "limit": limit
-        }
+    async def get_admin_coupon_list(self, skip: int = 0, limit: int = 100):
+        return await self.coupon_repo.get_coupon_list(skip=skip,limit=limit)
 
     async def receive_coupon(self, user_id: int, coupon_id: int) -> ReceiveCouponResponse:
         coupon = await self.coupon_repo.get_by_id(coupon_id)

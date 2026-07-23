@@ -14,10 +14,10 @@
         </a-tabs>
         <a-spin :spinning="loading">
           <a-table
-            :dataSource="filteredOrders"
+            :dataSource="orders"
             :columns="columns"
             row-key="id"
-            :pagination="{ pageSize: 10, total }"
+            :pagination="{ pageSize, total, current }"
             @change="handleTableChange"
           >
             <template #bodyCell="{ column, record }">
@@ -50,7 +50,7 @@
               </template>
             </template>
           </a-table>
-          <div v-if="filteredOrders.length === 0 && !loading" class="empty-state">
+          <div v-if="orders.length === 0 && !loading" class="empty-state">
             <div class="icon">📦</div>
             <p>暂无订单</p>
             <a-button type="primary" @click="$router.push('/')">去购物</a-button>
@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import Header from '@/components/Header.vue'
 import OrderStatusTag from '@/components/OrderStatusTag.vue'
@@ -73,6 +73,8 @@ import type { OrderResponse } from '@/types'
 const orders = ref<OrderResponse[]>([])
 const loading = ref(false)
 const total = ref(0)
+const pageSize = ref(10)
+const current = ref(1)
 const statusFilter = ref('all')
 
 const columns = [
@@ -84,24 +86,19 @@ const columns = [
   { title: '操作', key: 'action', width: 100 }
 ]
 
-const filteredOrders = computed(() => {
-  if (statusFilter.value === 'all') {
-    return orders.value
-  }
-  return orders.value.filter(o => o.status === statusFilter.value)
-})
-
 const fetchOrders = async ({
   skip,
   limit,
+  status,
 }: {
   skip: number
   limit: number
+  status?: string
 }) => {
   loading.value = true
   try {
     const response = await getOrders({
-      skip,limit
+      skip,limit, status: status == 'all' ? '' : status
     }) as unknown as { data: OrderResponse[]; total: number }
     orders.value = response?.data || []
     total.value = response?.total || 0
@@ -112,10 +109,17 @@ const fetchOrders = async ({
   }
 }
 
-const handleStatusChange = () => {
+const handleStatusChange = (e: any) => {
+  current.value = 1
+  fetchOrders({
+    skip: (current.value - 1) * pageSize.value,
+    limit: pageSize.value,
+    status: e
+  });
 }
 
 const handleTableChange = (e: any) => {
+  current.value = e.current;
   fetchOrders({
     skip: (e.current - 1) * e.pageSize,
     limit: e.pageSize

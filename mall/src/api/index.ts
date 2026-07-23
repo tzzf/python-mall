@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type {
   ProductResponse,
+  CategoryResponse,
   CartResponse,
   OrderResponse,
   CouponInfo,
@@ -23,7 +24,7 @@ import { useAuthStore } from '@/stores/auth';
 
 
 // helper 函数放这儿
-const handleUnauthorized = () => {
+export const handleUnauthorized = () => {
   const authStore = useAuthStore()
   authStore.logout()
   router.push('/login')
@@ -69,12 +70,21 @@ apiClient.interceptors.response.use(
   }
 )
 
-export const getProducts = (params?: { skip?: number; limit?: number; category_id?: number }) => {
+export const getProducts = (params?: { skip?: number; limit?: number; category_id?: number }): Promise<{ data: ProductResponse[]; total?: number }> => {
   return apiClient.get<{
     data: ProductResponse[],
     total: number
-  }>('/products/', { params })
+  }>('/products/', { params }) as any
 }
+
+export const getCategories = (): Promise<{ data: CategoryResponse[]; total: number }> =>
+  apiClient.get<{
+    data: CategoryResponse[],
+    total: number
+  }>('/products/categories/', { params: {
+    limit: 1000,
+    skip: 0,
+  } }) as any
 
 export const getProduct = (id: number) => {
   return apiClient.get<ProductResponse>(`/products/${id}`)
@@ -107,11 +117,12 @@ export const createOrder = (data: CreateOrderRequest) => {
 export const getOrders = (params: {
   limit: number,
   skip: number,
-}) => {
+  status?: string
+}): Promise<{ data: OrderResponse[]; total: number }> => {
   return apiClient.get<{
     data: OrderResponse[],
     total: number
-  }>('/orders/', { params })
+  }>('/orders/', { params }) as any
 }
 
 export const getOrder = (orderId: number) => {
@@ -157,7 +168,9 @@ export const login = (data: LoginRequest) => {
 }
 
 export const register = (data: RegisterRequest) => {
-  return apiClient.post<V1UserResponse>('/users/register', data)
+  return apiClient.post<V1UserResponse>('/users/register', data, {
+    params: data.invite_code ? { invite_code: data.invite_code } : {}
+  })
 }
 
 export const getCurrentUser = () => {

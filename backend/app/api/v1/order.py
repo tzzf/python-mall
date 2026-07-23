@@ -1,3 +1,4 @@
+from app.schemas.channel import PaginatedResponse
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
@@ -43,12 +44,16 @@ async def create_order(
 async def list_orders(
     skip: int = 0,
     limit: int = 20,
+    status: str = None,
     current_user=Depends(get_current_v1_user),
     svc: OrderService = Depends(get_order_service),
 ):
-    result = await svc.get_user_orders(current_user.id, skip, limit)
-    return result
-
+    result = await svc.get_user_orders(current_user.id, skip, limit, status)
+    data = [
+        OrderResponse.model_validate(c, from_attributes=True)
+        for c in result.items
+    ]
+    return PaginatedResponse(data=data, total=result.total, skip=skip, page=result.page, limit=result.page_size)
 
 @router.get("/{order_id}", response_model=OrderResponse)
 async def get_order(

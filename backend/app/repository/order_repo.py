@@ -1,3 +1,6 @@
+from app.core.pagination.filters.order import OrderFilter
+from app.core.pagination.result import PaginatedResult
+from app.core.pagination import paginate
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, func
 from sqlalchemy.orm import selectinload
@@ -55,19 +58,12 @@ class OrderRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_user_orders(self, user_id: int, skip: int = 0, limit: int = 20) -> List[Order]:
-        result = await self.db.execute(
-            select(Order)
-            .where(Order.user_id == user_id)
-            .options(
-                selectinload(Order.items),
-                selectinload(Order.coupon), 
-            )
-            .order_by(Order.created_at.desc())
-            .offset(skip)
-            .limit(limit)
+    async def get_user_orders(self, user_id: int, skip: int = 0, limit: int = 20, status: str = None) -> PaginatedResult[Order]:
+        filters = OrderFilter(
+            user_id=user_id,
+            status=status if status else None,
         )
-        return list(result.scalars().all())
+        return await paginate(self.db, Order, filters, skip=skip, limit=limit)
 
     async def get_order_items(self, order_id: int) -> List[OrderItem]:
         result = await self.db.execute(
@@ -85,22 +81,11 @@ class OrderRepository:
         )
         return list(result.scalars().all())
 
-    async def get_all_orders(self, skip: int = 0, limit: int = 100, status: str = None) -> List[OrderResponse]:
-        query = (
-            select(Order)
-            .order_by(Order.created_at.desc())
-            .options(
-                selectinload(Order.items),
-                selectinload(Order.coupon),
-            )
-            .offset(skip)
-            .limit(limit)
+    async def get_all_orders(self, skip: int = 0, limit: int = 100, status: str = None) -> PaginatedResult[Order]:
+        filters = OrderFilter(
+            status=status if status else None,
         )
-        if status:
-            query = query.where(Order.status == status)
-        result = await self.db.execute(query)
-        orders = list(result.scalars().all())
-        return [OrderResponse.model_validate(o) for o in orders]
+        return await paginate(self.db, Order, filters, skip=skip, limit=limit)
 
     async def get_all_orders_count(self, status: str = None) -> int:
         query = select(func.count()).select_from(Order)

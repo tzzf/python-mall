@@ -78,6 +78,8 @@ export interface V1UserResponse {
   username: string
   email: string
   is_active: boolean
+  is_channel: boolean
+  channel_status: string
   created_at: string
 }
 
@@ -101,6 +103,7 @@ export interface RegisterRequest {
   username: string
   email: string
   password: string
+  invite_code?: string
 }
 
 export interface CreateOrderRequest {

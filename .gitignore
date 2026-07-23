@@ -8,6 +8,7 @@ __pycache__/
 *.egg-info/
 dist/
 static/
+versions/
 build/
 *.whl
 

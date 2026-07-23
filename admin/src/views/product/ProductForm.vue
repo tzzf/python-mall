@@ -90,7 +90,13 @@ watch(() => props.visible, async (val) => {
 
 const loadCategories = async () => {
   try {
-    categories.value = await getCategories() as unknown as CategoryResponse[]
+    const data = await getCategories({
+      limit: 10000,
+      skip: 0
+    }) as unknown as {
+      data: CategoryResponse[]
+    }
+    categories.value = data.data
   } catch (error) {
     console.error('加载分类失败', error)
   }

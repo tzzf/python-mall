@@ -1,3 +1,6 @@
+from app.core.pagination.filters.coupon import CouponFilter
+from app.core.pagination import paginate
+from app.core.pagination.result import PaginatedResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from app.models.coupon import Coupon, UserCoupon
@@ -74,6 +77,11 @@ class CouponRepository:
         await self.db.flush()
         await self.db.refresh(user_coupon)
         return user_coupon
+    
+    async def get_coupon_list(self, skip: int = 0, limit: int = 100)-> PaginatedResult[Coupon]:
+        filters = CouponFilter(
+        )
+        return await paginate(self.db, Coupon, filters, skip=skip, limit=limit)
 
     async def get_user_coupon(self, user_coupon_id: int) -> Optional[UserCoupon]:
         result = await self.db.execute(

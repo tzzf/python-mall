@@ -21,7 +21,9 @@
         v-else
         :columns="columns"
         :data-source="categories"
+        :pagination="{ pageSize: pageSize, total, current }"
         row-key="id"
+        @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'parent_id'">
@@ -67,13 +69,15 @@ import CategoryForm from './CategoryForm.vue'
 const columns = [
   { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
   { title: '分类名称', dataIndex: 'name', key: 'name' },
-  { title: '父分类', key: 'parent_id', width: 200 },
   { title: '操作', key: 'action', width: 150 }
 ]
 
 const categories = ref<CategoryResponse[]>([])
 const formVisible = ref(false)
 const currentCategory = ref<CategoryResponse | null>(null)
+const total = ref(0)
+const current = ref(1)
+const pageSize = ref(10)
 
 const { isLoading, isEmpty, execute } = useAsyncState<CategoryResponse[]>()
 
@@ -86,12 +90,17 @@ const getParentName = (parentId: number | null) => {
 const loadCategories = async () => {
   try {
     const result = await execute(async () => {
-      const data = await getCategories()
+      const data = await getCategories({
+        skip: (current.value - 1) * pageSize.value,
+        limit: pageSize.value
+      })
       return data as unknown as CategoryResponse[]
     })
 
     if (result) {
-      categories.value = result
+      total.value = (result as any).total || 0
+      pageSize.value = (result as any).limit || 0
+      categories.value = (result as any).data
     }
   } catch (error: any) {
     message.error(error.message || '加载分类失败')
@@ -106,6 +115,11 @@ const handleCreate = () => {
 const handleEdit = (category: CategoryResponse) => {
   currentCategory.value = category
   formVisible.value = true
+}
+
+const handleTableChange = (e: any) => {
+  current.value = e.current
+  loadCategories()
 }
 
 const handleDelete = async (id: number) => {

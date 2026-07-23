@@ -43,6 +43,26 @@ const router = createRouter({
           path: '/users',
           name: 'UserList',
           component: () => import('../views/user/UserList.vue')
+        },
+        {
+          path: '/channel/applications',
+          name: 'ChannelApplicationList',
+          component: () => import('../views/channel/ChannelApplicationList.vue')
+        },
+        {
+          path: '/channel/list',
+          name: 'ChannelList',
+          component: () => import('../views/channel/ChannelList.vue')
+        },
+        {
+          path: '/channel/setting',
+          name: 'ChannelSetting',
+          component: () => import('../views/channel/ChannelSetting.vue')
+        },
+        {
+          path: '/channel/withdrawals',
+          name: 'ChannelWithdrawalList',
+          component: () => import('../views/channel/ChannelWithdrawalList.vue')
         }
       ]
     }

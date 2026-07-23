@@ -14,12 +14,13 @@ class V1UserService:
         self.db = db
         self.repo = V1UserRepository(db)
 
-    def create_user(self, user_in: V1UserCreate) -> V1User:
+    def create_user(self, user_in: V1UserCreate, referrer_id: int | None = None) -> V1User:
         hashed_pwd = get_password_hash(user_in.password)
         user = V1User(
             username=user_in.username,
             email=user_in.email,
             hashed_password=hashed_pwd,
+            referrer_id=referrer_id,
         )
         return self.repo.create(user)
 

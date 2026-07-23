@@ -19,6 +19,7 @@ class V1UserResponse(V1UserBase):
     id: int
     is_active: bool
     created_at: datetime
+    is_channel: Optional[bool] = None
 
     class Config:
         from_attributes = True

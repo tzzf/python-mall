@@ -1,3 +1,4 @@
+from app.schemas.channel import PaginatedResponse
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
@@ -39,13 +40,20 @@ async def create_category(
     return await svc.create_category(category_in)
 
 
-@router.get("/categories", response_model=List[CategoryResponse])
+@router.get("/categories")
 async def list_categories(
+    skip: int = 0,
+    limit: int = 100,
     db: AsyncSession = Depends(get_db),
     _current_admin=Depends(get_current_admin),
 ):
     svc = get_category_service(db)
-    return await svc.list_categories()
+    result = await svc.list_categories(skip, limit)
+    data = [
+        CategoryResponse.model_validate(c, from_attributes=True)
+        for c in result.items
+    ]
+    return PaginatedResponse(data=data, total=result.total, skip=skip, page=result.page, limit=result.page_size)
 
 
 @router.patch("/categories/{category_id}", response_model=CategoryResponse)
@@ -62,7 +70,7 @@ async def update_category(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.delete("/categories/{category_id}", status_code=204)
+@router.delete("/categories/{category_id}", status_code=200)
 async def delete_category(
     category_id: int,
     db: AsyncSession = Depends(get_db),
@@ -99,7 +107,12 @@ async def list_products(
     _current_admin=Depends(get_current_admin),
 ):
     svc = get_product_service(db)
-    return await svc.list_products(skip=skip, limit=limit)
+    result = await svc.list_products(skip, limit)
+    data = [
+        ProductResponse.model_validate(c, from_attributes=True)
+        for c in result.items
+    ]
+    return PaginatedResponse(data=data, total=result.total, skip=skip, page=result.page, limit=result.page_size)
 
 
 @router.get("/{product_id}", response_model=ProductResponse)

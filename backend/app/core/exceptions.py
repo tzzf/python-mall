@@ -86,6 +86,14 @@ class ServerException(APIException):
         )
 
 
+class BizException(Exception):
+    """业务异常（非 HTTPException，路由层捕获后转 HTTP 400）"""
+
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(message)
+
+
 async def api_exception_handler(_request: Request, exc: HTTPException) -> JSONResponse:
     """全局异常处理器：统一格式所有 HTTPException"""
     detail = exc.detail if isinstance(exc.detail, dict) else {"message": str(exc.detail)}

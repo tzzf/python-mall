@@ -10,7 +10,8 @@ class OrderStatus(str, Enum):
     PENDING = "pending"           # 待支付
     PAID = "paid"                 # 已支付
     SHIPPED = "shipped"           # 已发货
-    DELIVERED = "delivered"       # 已收货/已完成
+    DELIVERED = "delivered"       # 已收货
+    COMPLETED = "completed"       # 已完成
     CANCELLED = "cancelled"       # 已取消
     REFUNDING = "refunding"       # 退款中
     REFUNDED = "refunded"         # 已退款
@@ -79,5 +80,5 @@ class OrderConfirmReceiptResponse(BaseModel):
 class PaginatedOrdersResponse(BaseModel):
     data: List[OrderResponse]
     total: int
-    skip: int
+    skip: Optional[int] = None
     limit: int

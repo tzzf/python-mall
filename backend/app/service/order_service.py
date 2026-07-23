@@ -7,6 +7,7 @@ from app.models.order import Order
 from decimal import Decimal
 from typing import List
 from app.core.redis import get_redis
+from app.core.aspects import observe_order_status_change
 from datetime import datetime, timedelta
 
 class OrderService:
@@ -131,6 +132,7 @@ class OrderService:
         items = await self.order_repo.get_order_items(order_id)
         return {"order": order, "items": items}
 
+    @observe_order_status_change
     async def update_order_status(self, order_id: int, new_status: str):
         order = await self.order_repo.get_by_id(order_id)
         if not order:
@@ -140,24 +142,10 @@ class OrderService:
         return data
 
     async def get_all_orders(self, skip: int = 0, limit: int = 100, status: str = None):
-        orders = await self.order_repo.get_all_orders(skip=skip, limit=limit, status=status)
-        total = await self.order_repo.get_all_orders_count(status=status)
-        return {
-            "data": orders,
-            "total": total,
-            "skip": skip,
-            "limit": limit,
-        }
+        return await self.order_repo.get_all_orders(skip=skip, limit=limit, status=status)
     
-    async def get_user_orders(self, user_id: int, skip: int = 0, limit: int = 20):
-        orders = await self.order_repo.get_user_orders(user_id, skip, limit)
-        total = await self.order_repo.get_user_orders_count(user_id)
-        return {
-            "data": orders,
-            "total": total,
-            "skip": skip,
-            "limit": limit,
-        }
+    async def get_user_orders(self, user_id: int, skip: int = 0, limit: int = 20, status: str = None):
+        return await self.order_repo.get_user_orders(user_id, skip, limit, status)
     
     async def release_coupon(self, order_id: int):
         """订单超时未支付时，释放预留的优惠券
@@ -214,7 +202,7 @@ class OrderService:
         return await self.order_repo.get_by_id(order_id)
 
     async def confirm_receipt(self, user_id: int, order_id: int) -> Order:
-        """用户确认收货：仅限已发货状态"""
+        """用户确认收货：仅限已发货状态，确认后订单完成"""
         order = await self.order_repo.get_by_id(order_id)
         if not order:
             raise ValueError("订单不存在")
@@ -223,6 +211,5 @@ class OrderService:
         if order.status != OrderStatus.SHIPPED.value:
             raise ValueError("只有已发货状态的订单可以确认收货")
 
-        await self.order_repo.update_status(order, OrderStatus.DELIVERED.value)
-        await self.db.commit()
+        await self.update_order_status(order_id, OrderStatus.COMPLETED.value)
         return await self.order_repo.get_by_id(order_id)

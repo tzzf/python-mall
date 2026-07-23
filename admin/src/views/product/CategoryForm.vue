@@ -14,14 +14,6 @@
       <a-form-item label="分类名称" required>
         <a-input v-model:value="formState.name" placeholder="请输入分类名称" />
       </a-form-item>
-      <a-form-item label="父分类">
-        <a-select v-model:value="formState.parent_id" placeholder="请选择父分类（可选）" allow-clear>
-          <a-select-option :value="null">无</a-select-option>
-          <a-select-option v-for="cat in filteredCategories" :key="cat.id" :value="cat.id">
-            {{ cat.name }}
-          </a-select-option>
-        </a-select>
-      </a-form-item>
     </a-form>
   </a-modal>
 </template>
@@ -51,11 +43,6 @@ const formState = reactive({
 })
 
 const isEdit = computed(() => !!props.category)
-
-const filteredCategories = computed(() => {
-  if (!props.category) return props.categories
-  return props.categories.filter(c => c.id !== props.category?.id)
-})
 
 watch(() => props.visible, (val) => {
   if (val) {

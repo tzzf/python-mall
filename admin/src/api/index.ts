@@ -86,7 +86,10 @@ export const regenerateProductImage = (id: number) =>
   api.post(`/products/${id}/generate-image`)
 
 // Category APIs
-export const getCategories = () => api.get<CategoryResponse[]>('/products/categories')
+export const getCategories = (params: {
+  limit: number,
+  skip: number,
+}) => api.get<CategoryResponse[]>('/products/categories', { params })
 
 export const createCategory = (data: { name: string; parent_id?: number | null }) =>
   api.post<CategoryResponse>('/products/categories', data)

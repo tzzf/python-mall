@@ -1,3 +1,7 @@
+from app.core.pagination import paginate
+from app.core.pagination.filters.prouduct import ProductFilter
+from app.core.pagination.result import PaginatedResult
+from app.core.pagination.filters.category import CategoryFilter
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete, func
 from app.models.product import Product, Category
@@ -19,11 +23,11 @@ class ProductRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_list(self, skip: int = 0, limit: int = 100) -> List[Product]:
-        result = await self.db.execute(
-            select(Product).offset(skip).limit(limit)
+    async def get_list(self, skip: int = 0, limit: int = 100, category_id: Optional[int] = None) -> PaginatedResult[Product]:
+        filters = ProductFilter(
+            category_id=category_id
         )
-        return list(result.scalars().all())
+        return await paginate(self.db, Product, filters, skip=skip, limit=limit)
 
     async def get_spu_count(self) -> int:
         result = await self.db.execute(
@@ -79,9 +83,11 @@ class CategoryRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_all(self) -> List[Category]:
-        result = await self.db.execute(select(Category))
-        return list(result.scalars().all())
+    async def get_all(self, skip: int = 0, limit: int = 100) -> PaginatedResult[Category]:
+        filters = CategoryFilter(
+        )
+        return await paginate(self.db, Category, filters, skip=skip, limit=limit)
+
 
     async def create(self, category_in) -> Category:
         category = Category(**category_in.model_dump())

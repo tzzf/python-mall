@@ -22,7 +22,7 @@
         :columns="columns"
         :data-source="coupons"
         row-key="id"
-        :pagination="{ pageSize: 10, total }"
+        :pagination="{ pageSize: 10, total, current }"
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">

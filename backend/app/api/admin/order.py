@@ -1,10 +1,11 @@
+from app.schemas.channel import PaginatedResponse
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.api.deps import get_current_admin
 from app.repository.order_repo import OrderRepository
 from app.service.order_service import OrderService
-from app.schemas.order import OrderStatusUpdate, PaginatedOrdersResponse
+from app.schemas.order import OrderResponse, OrderStatusUpdate, PaginatedOrdersResponse
 from typing import List, Optional
 
 router = APIRouter(prefix="/orders", tags=["管理端-订单"])
@@ -21,7 +22,12 @@ async def list_all_orders(
     current_admin=Depends(get_current_admin),
     svc: OrderService = Depends(get_order_service),
 ):
-    return await svc.get_all_orders(skip=skip, limit=limit, status=status)
+    result = await svc.get_all_orders(skip, limit, status)
+    data = [
+        OrderResponse.model_validate(c, from_attributes=True)
+        for c in result.items
+    ]
+    return PaginatedResponse(data=data, total=result.total, skip=skip, page=result.page, limit=result.page_size)
 
 
 @router.put("/{order_id}/status")

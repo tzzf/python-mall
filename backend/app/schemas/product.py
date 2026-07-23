@@ -67,5 +67,6 @@ class ProductResponse(ProductBase):
 class PaginatedSpuResponse(BaseModel):
     data: List[ProductResponse]
     total: int
-    skip: int
+    skip: Optional[int] = None
+    page: Optional[int] = None
     limit: int

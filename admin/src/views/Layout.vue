@@ -18,6 +18,13 @@
         <a-menu-item key="/users">
           <span>用户管理</span>
         </a-menu-item>
+        <a-sub-menu key="channel">
+          <template #title>渠道商管理</template>
+          <a-menu-item key="/channel/applications">申请审核</a-menu-item>
+          <a-menu-item key="/channel/list">渠道商列表</a-menu-item>
+          <a-menu-item key="/channel/setting">佣金设置</a-menu-item>
+          <a-menu-item key="/channel/withdrawals">提现审核</a-menu-item>
+        </a-sub-menu>
       </a-menu>
     </a-layout-sider>
     <a-layout>

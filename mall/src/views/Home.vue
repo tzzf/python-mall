@@ -98,12 +98,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { message } from 'ant-design-vue'
 import { AppstoreOutlined, CrownOutlined } from '@ant-design/icons-vue'
 import Header from '@/components/Header.vue'
 import ProductCard from '@/components/ProductCard.vue'
-import { getProducts } from '@/api'
+import { getProducts, getCategories } from '@/api'
 import type { ProductResponse, CategoryResponse } from '@/types'
 
 const products = ref<ProductResponse[]>([])
@@ -135,9 +135,16 @@ const fetchProducts = async () => {
   }
 }
 
+const fetchCategories = async () => {
+  const response = await getCategories()
+  categories.value = response.data
+}
+
 const handleCategoryChange = () => {
   page.value = 1
-  fetchProducts()
+  nextTick(()=> {
+    fetchProducts()
+  })
 }
 
 const handlePageChange = (newPage: number) => {
@@ -148,6 +155,7 @@ const handlePageChange = (newPage: number) => {
 
 onMounted(() => {
   fetchProducts()
+  fetchCategories()
 })
 </script>
 

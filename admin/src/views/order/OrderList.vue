@@ -13,6 +13,7 @@
         <a-select-option value="paid">已支付</a-select-option>
         <a-select-option value="shipped">已发货</a-select-option>
         <a-select-option value="delivered">已送达</a-select-option>
+        <a-select-option value="completed">已完成</a-select-option>
         <a-select-option value="cancelled">已取消</a-select-option>
         <a-select-option value="refunding">退款中</a-select-option>
         <a-select-option value="refunded">已退款</a-select-option>
@@ -37,7 +38,7 @@
         :columns="columns"
         :data-source="orders"
         row-key="id"
-        :pagination="{ pageSize: 10, total }"
+        :pagination="{ pageSize, total, current }"
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
@@ -72,6 +73,7 @@
             <a-select-option value="paid">已支付</a-select-option>
             <a-select-option value="shipped">已发货</a-select-option>
             <a-select-option value="delivered">已送达</a-select-option>
+            <a-select-option value="completed">已完成</a-select-option>
             <a-select-option value="cancelled">已取消</a-select-option>
             <a-select-option value="refunding">退款中</a-select-option>
             <a-select-option value="refunded">已退款</a-select-option>
@@ -145,6 +147,7 @@ const { optimisticUpdate, isItemPending } = useOptimistic<OrderResponse>()
 const statusMap: Record<string, string> = {
   pending: '待支付',
   paid: '已支付',
+  completed: '已完成',
   shipped: '已发货',
   delivered: '已送达',
   cancelled: '已取消',
@@ -173,12 +176,12 @@ const loadOrders = async () => {
         (current.value - 1) * pageSize.value,
         pageSize.value
       )
+      total.value = (data as any).total || 0
       return data?.data as unknown as OrderResponse[]
     })
 
     if (result) {
       orders.value = result
-      total.value = result.length > 0 ? (result.length * 10) : 0  // Simplified for demo
     }
   } catch (error: any) {
     message.error(error.message || '加载订单失败')

@@ -11,15 +11,8 @@ class ProductService:
     async def get_product(self, product_id: int) -> Optional[Product]:
         return await self.repo.get_by_id(product_id)
 
-    async def list_products(self, skip: int = 0, limit: int = 100):
-        data = await self.repo.get_list(skip=skip, limit=limit)
-        total = await self.repo.get_spu_count()
-        return {
-            "data": data,
-            "total": total,
-            "skip": skip,
-            "limit": limit,
-        }
+    async def list_products(self, skip: int = 0, limit: int = 100,category_id: Optional[int] = None):
+        return await self.repo.get_list(skip=skip, limit=limit, category_id=category_id)
 
     async def create_product(self, product_in: ProductCreate) -> Product:
         return await self.repo.create(product_in)
@@ -45,8 +38,8 @@ class CategoryService:
     async def get_category(self, category_id: int) -> Optional[Category]:
         return await self.repo.get_by_id(category_id)
 
-    async def list_categories(self) -> List[Category]:
-        return await self.repo.get_all()
+    async def list_categories(self, skip: int = 0, limit: int = 100):
+        return await self.repo.get_all(skip, limit)
 
     async def create_category(self, category_in) -> Category:
         return await self.repo.create(category_in)
@@ -66,3 +59,4 @@ class CategoryService:
         if not category:
             raise ValueError("分类不存在")
         await self.repo.delete(category_id)
+        await self.db.commit()
