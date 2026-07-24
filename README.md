@@ -118,6 +118,13 @@ chmod +x deploy.sh
 | `coupons` | 优惠券 |
 | `user_coupons` | 用户领取的优惠券 |
 | `cart_items` | 购物车（Redis） |
+| `channel_invite_codes` | 渠道商邀请码 |
+| `channel_applications` | 渠道商申请记录 |
+| `channel_banks` | 渠道商银行卡 |
+| `channel_commissions` | 佣金记录（冻结/可用/已提现） |
+| `channel_withdrawals` | 提现申请 |
+| `channel_settings` | L1/L2 佣金率配置 |
+| `order_channels` | 订单与渠道商关联（用于佣金追溯） |
 
 ## 订单状态机
 
@@ -136,13 +143,24 @@ cancelled（取消）    refunding（退款中）→ refunded（已退款）
 - 下单 + 优惠券
 - 模拟支付
 - 订单管理（查看、退款、取消）
+- **渠道商申请**：用户可申请成为渠道商，获得专属邀请码
+- **邀请返利**：L1（直接）和 L2（间接）邀请奖励机制
+- **佣金管理**：查看佣金明细、汇总、申请提现
+- **银行卡管理**：渠道商绑定收款银行卡
 
 ### 管理端（admin）
-- 商品增删改查
+- 商品增删改查（含 AI 生成商品图）
 - 分类管理
 - 订单状态管理（发货、退款）
 - 优惠券管理
 - 用户管理（启用/禁用）
+- 渠道商管理（审核、佣金记录、提现审批）
+- 渠道商银行信息查看
+
+### AI 能力
+- **商品图生成**：新产品创建时自动调用 MiniMax API 生成商品主图
+- 支持本地缓存下载，绕过第三方 URL 有效期限制
+- 幂等设计：已有图片不重复生成
 
 ## 技术细节
 
@@ -160,4 +178,17 @@ cancelled（取消）    refunding（退款中）→ refunded（已退款）
 
 ### 密码加密
 - argon2-cffi + passlib
+
+### 通用分页模块
+- `core/pagination/` — 通用的分页基础设施
+- `paginate()` 函数：接收 `BaseFilter` 子类，自动处理 count、主查询、排序
+- 业务 Filter 类（如 `V1UserFilter`、`OrderFilter`）继承 `BaseFilter`，实现 `to_conditions()`、`custom_conditions()`、`get_joins()` 等方法
+- 支持 JOIN 模式、额外列急加载、自定义排序方向
+- **佣金模块**使用该分页系统：支持按 status 筛选佣金记录
+
+### 佣金自动计算（AOP）
+- `@observe_order_status_change` 装饰器（`core/aspects.py`）监听订单状态变化
+- **pending → paid**：冻结佣金（frozen）
+- **paid → completed**：解冻并落为可用佣金（available）
+- 渠道商通过邀请码发展下级，L1/L2 佣金率可配置
 
